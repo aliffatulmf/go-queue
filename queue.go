@@ -8,13 +8,12 @@ import (
 var ErrOutOfRange = errors.New("index out of range")
 
 type Queue struct {
-	mu    *sync.Mutex
+	mu    sync.RWMutex
 	items []interface{}
 }
 
 func NewQueue() *Queue {
 	return &Queue{
-		mu:    new(sync.Mutex),
 		items: make([]interface{}, 0),
 	}
 }
@@ -35,8 +34,8 @@ func (q *Queue) Enqueue(values ...interface{}) {
 }
 
 func (q *Queue) Dequeue() (interface{}, error) {
-	q.mu.Lock()
-	defer q.mu.Unlock()
+	q.mu.RLock()
+	defer q.mu.RUnlock()
 	if len(q.items) <= 0 {
 		return nil, ErrOutOfRange
 	}
@@ -46,8 +45,8 @@ func (q *Queue) Dequeue() (interface{}, error) {
 }
 
 func (q *Queue) Peek() (interface{}, error) {
-	q.mu.Lock()
-	defer q.mu.Unlock()
+	q.mu.RLock()
+	defer q.mu.RUnlock()
 	if len(q.items) <= 0 {
 		return nil, ErrOutOfRange
 	}
@@ -55,8 +54,8 @@ func (q *Queue) Peek() (interface{}, error) {
 }
 
 func (q *Queue) Contains(value interface{}) bool {
-	q.mu.Lock()
-	defer q.mu.Unlock()
+	q.mu.RLock()
+	defer q.mu.RUnlock()
 	for _, item := range q.items {
 		if item == value {
 			return true
@@ -66,8 +65,8 @@ func (q *Queue) Contains(value interface{}) bool {
 }
 
 func (q *Queue) Remove(value interface{}) error {
-	q.mu.Lock()
-	defer q.mu.Unlock()
+	q.mu.RLock()
+	defer q.mu.RUnlock()
 	for i, item := range q.items {
 		if item == value {
 			q.items = append(q.items[:i], q.items[i+1:]...)
@@ -78,8 +77,8 @@ func (q *Queue) Remove(value interface{}) error {
 }
 
 func (q *Queue) Purge() {
-	q.mu.Lock()
-	defer q.mu.Unlock()
+	q.mu.RLock()
+	defer q.mu.RUnlock()
 
 	if q.items != nil || cap(q.items) > 0 {
 		q.items = make([]interface{}, 0)
