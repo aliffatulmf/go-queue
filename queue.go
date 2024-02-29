@@ -22,10 +22,10 @@ func NewQueue() *Queue {
 func (q *Queue) Len() int {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	if len(q.items) > 0 {
-		return len(q.items)
+	if len(q.items) <= 0 || q.items == nil {
+		return 0
 	}
-	return -1
+	return len(q.items)
 }
 
 func (q *Queue) Enqueue(values ...interface{}) {
@@ -77,8 +77,11 @@ func (q *Queue) Remove(value interface{}) error {
 	return ErrOutOfRange
 }
 
-func (q *Queue) Flush() {
+func (q *Queue) Purge() {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	q.items = make([]interface{}, 0)
+
+	if q.items != nil || cap(q.items) > 0 {
+		q.items = make([]interface{}, 0)
+	}
 }

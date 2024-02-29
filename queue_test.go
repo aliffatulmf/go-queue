@@ -66,3 +66,17 @@ func TestQueueInGoroutine(t *testing.T) {
 	}
 	wg.Wait()
 }
+
+func TestQueuePurge(t *testing.T) {
+	q := queue.NewQueue()
+
+	for i := 0; i < 10; i++ {
+		q.Enqueue(i)
+	}
+
+	q.Purge()
+
+	if q.Len() != 0 {
+		t.Errorf("got: %v, want: %v", q.Len(), -1)
+	}
+}
